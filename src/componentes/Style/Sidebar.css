@@ -1,0 +1,69 @@
+/* Sidebar base */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background-color: #1e3a8a; /* azul oscuro */
+  color: white;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+/* Abierto */
+.sidebar.open {
+  width: 220px;
+}
+
+/* Colapsado */
+.sidebar.collapsed {
+  width: 60px;
+}
+
+/* Header del sidebar */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+/* Menú */
+.sidebar-menu {
+  margin-top: 1rem;
+}
+
+.sidebar-menu h3 {
+  font-size: 0.9rem;
+  margin: 0.5rem 1rem;
+  opacity: 0.7;
+}
+
+/* Items del menú */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: inherit;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.menu-item.active {
+  background-color: rgba(255, 255, 255, 0.3);
+  font-weight: bold;
+}
+
+/* Ocultar texto si está colapsado */
+.sidebar.collapsed .menu-item span {
+  display: none;
+}
