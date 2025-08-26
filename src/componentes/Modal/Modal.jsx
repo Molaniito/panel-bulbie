@@ -1,15 +1,14 @@
 import React from "react";
 import "./Modal.css";
-import Ejemplo from "./Ejemplo";
 
-function ModalMatch({ onClose }) {
+function ModalMatch({ onClose, contenido}) {
   return (
     <div className="modal-overlay">
       <div className="modal-container">
         <button className="modal-close" onClick={onClose}>
           ✕
         </button>
-        <Ejemplo/>
+        {contenido}
       </div>
     </div>
   );
