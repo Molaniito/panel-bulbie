@@ -1,64 +1,82 @@
 import React, { useState } from 'react';
 import { Settings, Edit, Trash2, Plus, X, Eye} from 'lucide-react';
+import Modal from "./Modal/Modal";
+import ModalAgregarItem from "./Modal/ModalAgregarItems"
 
 const VistaItems = () => {
+  const [ModalAgregarAbierto, setModalAgregarAbierto] = useState(false);
+  const [ModalViewAbierto, setModalViewAbierto] = useState(false);
+  const [ModalEliminarAbierto, setModalEliminarAbierto] = useState(false);
+  const [ModalEditarAbierto, setModalEditarAbierto] = useState(false);
+  const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
+
+    const abrirModalAgregar = () => {
+    setModalAgregarAbierto(true);
+  };
+
+  const cerrarModalAgregar = () => {
+    setModalAgregarAbierto(false);
+  };
+
+  const abrirModalView = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalViewAbierto(true);
+  };
+
+  const cerrarModalView = () => {
+    setRegistroSeleccionado(null);
+    setModalViewAbierto(false);
+  };
+  const abrirModalEliminar = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalEliminarAbierto(true);
+  };  
+  const cerrarModalEliminar = () => {
+    setRegistroSeleccionado(null);
+    setModalEliminarAbierto(false);
+  };
+
+  const abrirModalEditar = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalEditarAbierto(true);
+  };
+  const cerrarModalEditar = () => {
+    setRegistroSeleccionado(null);
+    setModalEditarAbierto(false);
+  };
+
   const [preguntas, setPreguntas] = useState([
     {
-      pregunta: '¿Cuál es la capital de Colombia?',
-      opcion1: 'Medellín',
-      opcion2: 'Bogotá',
-      opcion3: 'Cali',
-      correcta: 'Bogotá',
-      audio: 'audio1.mp3'
+      pregunta: "¿Does she go to Gym?",
+      opcion1: "Yes",
+      opcion2: "No",
+      opcion3: "False",
+      correcta: "Yes",
+      audio: "audio1.mp3",
     },
     {
-      pregunta: '¿Qué idioma se habla en Brasil?',
-      opcion1: 'Portugués',
-      opcion2: 'Español',
-      opcion3: 'Inglés',
-      correcta: 'Portugués',
-      audio: 'audio2.mp3'
-    }
+      pregunta: "¿What Language is spoken in Brazil?",
+      opcion1: "Portuguese",
+      opcion2: "Spanish",
+      opcion3: "English",
+      correcta: "Portuguese",
+      audio: "audio2.mp3",
+    },
   ]);
 
-  const [mostrarModal, setMostrarModal] = useState(false);
-  const [nuevaPregunta, setNuevaPregunta] = useState({
-    pregunta: '',
-    opcion1: '',
-    opcion2: '',
-    opcion3: '',
-    correcta: '',
-    audio: ''
-  });
-
-  // Manejar inputs
-  const handleChange = (e) => {
-    setNuevaPregunta({ ...nuevaPregunta, [e.target.name]: e.target.value });
-  };
-
-  // Guardar nueva pregunta
-  const handleGuardar = () => {
-    setPreguntas([...preguntas, nuevaPregunta]);
-    setNuevaPregunta({ pregunta: '', opcion1: '', opcion2: '', opcion3: '', correcta: '', audio: '' });
-    setMostrarModal(false);
-  };
 
   return (
     <div className="vista-items">
       {/* Encabezado */}
-      <div className="vista-items-encabezado flex items-center gap-3">
-        <Settings size={24} className="icono-configuracion" />
-        <h2 className="titulo-items">Configuración de Ejercicio</h2>
-
-        {/* Botón agregar nuevo */}
-        <button
-          type="button"
-          className="btn agregar flex items-center gap-1 ml-4"
-          onClick={() => setMostrarModal(true)}
-        >
-          <Plus size={16} /> AGREGAR NUEVO
-        </button>
-      </div>
+      {/* Botón agregar nuevo */}
+      <button
+        type="button"
+        className="btn agregar flex items-center gap-1 ml-4"
+        onClick={abrirModalAgregar}
+      >
+        <Plus size={16} /> AGREGAR NUEVO
+      </button>
+      <div className="vista-items-encabezado flex items-center gap-3"></div>
 
       {/* Tabla de preguntas */}
       <div className="tabla-container">
@@ -67,12 +85,12 @@ const VistaItems = () => {
           <thead>
             <tr>
               <th>Pregunta</th>
-              <th>Opción 1</th>
-              <th>Opción 2</th>
-              <th>Opción 3</th>
-              <th>Respuesta Correcta</th>
+              <th>option 1</th>
+              <th>option 2</th>
+              <th>option 3</th>
+              <th>correct answer</th>
               <th>Audio</th>
-              <th>Acciones</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -89,13 +107,19 @@ const VistaItems = () => {
                       Tu navegador no soporta audio.
                     </audio>
                   ) : (
-                    'Sin audio'
+                    "Sin audio"
                   )}
                 </td>
                 <td className="acciones">
-                  <button title="Ver"><Eye size={16} /></button>
-                  <button title="Editar"><Edit size={16} /></button>
-                  <button title="Eliminar"><Trash2 size={16} /></button>
+                  <button title="Ver" onClick={() => abrirModalView (item)}>
+                    <Eye size={16} />
+                  </button>
+                  <button title="Editar" onClick={() => abrirModalEditar (item)}>
+                    <Edit size={16} />
+                  </button>
+                  <button title="Eliminar" onClick={() => abrirModalEliminar (item)}>
+                    <Trash2 size={16} />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -103,84 +127,122 @@ const VistaItems = () => {
         </table>
       </div>
 
-      {/* Modal */}
-      {mostrarModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600"
-              onClick={() => setMostrarModal(false)}
-            >
-              <X size={20} />
-            </button>
+      {/* Modal Agregar Item */}
+      {ModalAgregarAbierto && (
+        <Modal onClose={cerrarModalAgregar} contenido={<ModalAgregarItem />} />
+      )}
 
-            <h3 className="text-lg font-semibold mb-4">Agregar Pregunta</h3>
+      {/* Modal View Item */}
+      {ModalViewAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalView}
+          contenido={
+            <div>
+              <h3>Vista Detallada Registro</h3>
+              <p><b>Pregunta:</b> {registroSeleccionado.pregunta}</p>
+              <p><b>WritingField 1:</b> {registroSeleccionado.opcion1}</p>
+              <p><b>WritingField 2:</b> {registroSeleccionado.opcion2}</p>
+              <p><b>WritingField 3:</b> {registroSeleccionado.opcion3}</p>
+              <p><b>Respuesta Correcta :</b> {registroSeleccionado.correcta}</p>
+              
+              <p><b>Audio:</b></p>
+              <audio controls src={registroSeleccionado.audio}></audio>      </div>
+          }
+        />
+      )}
+      {/* Modal Editar Item */}
+      {ModalEditarAbierto && registroSeleccionado && (
+  <Modal
+    onClose={cerrarModalEditar}
+    contenido={
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          alert("Registro actualizado ✅");
 
-            <input
-              type="text"
-              name="pregunta"
-              placeholder="Pregunta"
-              value={nuevaPregunta.pregunta}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="opcion1"
-              placeholder="Opción 1"
-              value={nuevaPregunta.opcion1}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="opcion2"
-              placeholder="Opción 2"
-              value={nuevaPregunta.opcion2}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="opcion3"
-              placeholder="Opción 3"
-              value={nuevaPregunta.opcion3}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="correcta"
-              placeholder="Respuesta Correcta"
-              value={nuevaPregunta.correcta}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="audio"
-              placeholder="URL del audio (opcional)"
-              value={nuevaPregunta.audio}
-              onChange={handleChange}
-              className="border p-2 w-full mb-4"
-            />
+            cerrarModalEditar();
+          const updated = {
+            ...registroSeleccionado,
+            pregunta: e.target.pregunta.value,
+            opcion1: e.target.w1.value,
+            opcion2: e.target.w2.value,
+            opcion3: e.target.w3.value,
+            correcta: e.target.correcta.value,
+            audio: e.target.audio.value,
+          };
 
-            <div className="flex justify-end gap-2">
+          setDatosEjemplo((prev) =>
+            prev.map((item) =>
+              item.id === registroSeleccionado.id ? updated : item
+            )
+          );
+
+          cerrarModalEditar();
+        }}
+      >
+        <h3>Editar Registro</h3>
+
+        <label>
+          Pregunta:
+          <input type="text" name="image" defaultValue={registroSeleccionado.pregunta} />
+        </label>
+
+        <label>
+          Opcion 1:
+          <input type="text" name="w1" defaultValue={registroSeleccionado.opcion1} />
+        </label>
+
+        <label>
+          Opcion 2:
+          <input type="text" name="w2" defaultValue={registroSeleccionado.opcion2} />
+        </label>
+
+        <label>
+          Opcion 3:
+          <input type="text" name="w3" defaultValue={registroSeleccionado.opcion3} />
+        </label>
+
+        <label>
+          Respuesta Correcta :
+          <input type="text" name="w3" defaultValue={registroSeleccionado.correcta} />
+        </label>
+
+        <label>
+                  {/* Audio */}
+          <label className="block mb-2 font-semibold">Audio</label>
+          <input
+            type="file"
+            name="audio"
+            accept="audio/*"
+            className="border p-2 w-full mb-4"
+          />
+              </label>
+
+        <button type="submit">Guardar Cambios</button>
+      </form>
+    }
+  />
+)}
+      {/* Modal Eliminar Item */}
+      {ModalEliminarAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalEliminar}
+          contenido={
+            <div>
+              <h3>¿Eliminar este registro?</h3>
+              <p><b>{registroSeleccionado.pregunta}</b></p>
+              <button onClick={cerrarModalEliminar}>Cancelar</button>
               <button
-                className="bg-gray-300 px-4 py-2 rounded"
-                onClick={() => setMostrarModal(false)}
+                onClick={() => {
+                  alert("Registro eliminado ✅");
+                  cerrarModalEliminar();
+                }}
               >
-                Cancelar
-              </button>
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handleGuardar}
-              >
-                Guardar
+                Eliminar
               </button>
             </div>
-          </div>
-        </div>
+          }
+        />
       )}
     </div>
   );

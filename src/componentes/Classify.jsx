@@ -1,21 +1,50 @@
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, X } from 'lucide-react';
+import Modal from "./Modal/Modal";
+import ModalAgregarClassify from "./Modal/ModalAgregarClassify"
 
-const VistaClassify = ({
-  clientesFiltrados,
-  busqueda,
-  setBusqueda,
-  resultadosPorPagina,
-  setResultadosPorPagina,
-  alternarActivo
-}) => {
-  const [mostrarModal, setMostrarModal] = useState(false);
-  const [nuevaCategoria, setNuevaCategoria] = useState({
-    word1: '',
-    word2: '',
-    word3: '',
-    elemento: ''
-  });
+const VistaClassify = () => {
+
+  const [ModalAgregarAbierto, setModalAgregarAbierto] = useState(false);
+  const [ModalViewAbierto, setModalViewAbierto] = useState(false);
+  const [ModalEliminarAbierto, setModalEliminarAbierto] = useState(false);
+  const [ModalEditarAbierto, setModalEditarAbierto] = useState(false);
+  const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
+
+  const abrirModalAgregar = () => {
+    setModalAgregarAbierto(true);
+  };
+
+  const cerrarModalAgregar = () => {
+    setModalAgregarAbierto(false);
+  };
+
+  const abrirModalView = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalViewAbierto(true);
+  };
+
+  const cerrarModalView = () => {
+    setRegistroSeleccionado(null);
+    setModalViewAbierto(false);
+  };
+  const abrirModalEliminar = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalEliminarAbierto(true);
+  };  
+  const cerrarModalEliminar = () => {
+    setRegistroSeleccionado(null);
+    setModalEliminarAbierto(false);
+  };
+
+  const abrirModalEditar = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalEditarAbierto(true);
+  };
+  const cerrarModalEditar = () => {
+    setRegistroSeleccionado(null);
+    setModalEditarAbierto(false);
+  };
 
   // Datos iniciales
   const [datos, setDatos] = useState([
@@ -23,20 +52,6 @@ const VistaClassify = ({
     { id: 2, word1: 'calzones', word2: 'pantalón', word3: 'medias', element: 'ropa' },
     { id: 3, word1: 'iphone 11', word2: 'motorola', word3: 'xiaomi', element: 'celulares' }
   ]);
-
-  // Manejo de inputs
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNuevaCategoria({ ...nuevaCategoria, [name]: value });
-  };
-
-  // Guardar nueva categoría
-  const handleGuardar = () => {
-    const nueva = { ...nuevaCategoria, id: Date.now() };
-    setDatos([...datos, nueva]);
-    setNuevaCategoria({ word1: '', word2: '', word3: '', element: '' });
-    setMostrarModal(false);
-  };
 
   return (
     <div className="vista-cliente">
@@ -46,7 +61,7 @@ const VistaClassify = ({
           <button
             type="button"
             className="btn agregar"
-            onClick={() => setMostrarModal(true)}
+            onClick={abrirModalAgregar}
           >
             <Plus size={16} /> AGREGAR NUEVO
           </button>
@@ -58,8 +73,6 @@ const VistaClassify = ({
             <input
               type="text"
               placeholder="Buscar categoría"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
         </div>
@@ -85,9 +98,15 @@ const VistaClassify = ({
                 <td>{item.word3}</td>
                 <td>{item.element}</td>
                 <td>
-                  <button title="Ver"><Eye size={16} /></button>
-                  <button title="Editar"><Edit size={16} /></button>
-                  <button title="Eliminar"><Trash2 size={16} /></button>
+                  <button title="Ver" onClick={() => abrirModalView(item)}>
+                    <Eye size={16} />
+                  </button>
+                <button title="Editar" onClick={() => abrirModalEditar(item)}>
+                    <Edit size={16} />
+                  </button>
+                  <button title="Eliminar" onClick={() => abrirModalEliminar(item)}>
+                    <Trash2 size={16} />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -95,68 +114,105 @@ const VistaClassify = ({
         </table>
       </div>
 
-      {/* Modal */}
-      {mostrarModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600"
-              onClick={() => setMostrarModal(false)}
-            >
-              <X size={20} />
-            </button>
+      {/* Modal Agregar Classify */}
+      {ModalAgregarAbierto && (
+        <Modal onClose={cerrarModalAgregar} contenido={<ModalAgregarClassify />} />
+      )}
 
-            <h3 className="text-lg font-semibold mb-4">Agregar Categoría</h3>
+      {/* Modal View Classify */}
+      {ModalViewAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalView}
+          contenido={
+            <div>
+              <h3>Vista Detallada Registro</h3>
+              <p><b>Element:</b> {registroSeleccionado.element}</p>
+              <p><b>Word 1:</b> {registroSeleccionado.word1}</p>
+              <p><b>Word 2:</b> {registroSeleccionado.word2}</p>
+              <p><b>Word 3:</b> {registroSeleccionado.word3}</p>
 
-            <input
-              type="text"
-              name="word1"
-              placeholder="Word 1"
-              value={nuevaCategoria.word1}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="word2"
-              placeholder="Word 2"
-              value={nuevaCategoria.word2}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="word3"
-              placeholder="Word 3"
-              value={nuevaCategoria.word3}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="elemento"
-              placeholder="Element"
-              value={nuevaCategoria.elemento}
-              onChange={handleChange}
-              className="border p-2 w-full mb-4"
-            />
+            </div>
+          }
+        />
+      )}
+      {/* Modal Editar Classify */}
+      {ModalEditarAbierto && registroSeleccionado && (
+  <Modal
+    onClose={cerrarModalEditar}
+    contenido={
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          alert("Registro actualizado ✅");
 
-            <div className="flex justify-end gap-2">
+            cerrarModalEditar();
+          const updated = {
+            ...registroSeleccionado,
+            pregunta: e.target.pregunta.value,
+            opcion1: e.target.w1.value,
+            opcion2: e.target.w2.value,
+            opcion3: e.target.w3.value,
+            correcta: e.target.correcta.value,
+            audio: e.target.audio.value,
+          };
+
+          setDatosEjemplo((prev) =>
+            prev.map((item) =>
+              item.id === registroSeleccionado.id ? updated : item
+            )
+          );
+
+          cerrarModalEditar();
+        }}
+      >
+        <h3>Editar Registro</h3>
+
+        <label>
+          Element:
+          <input type="text" name="image" defaultValue={registroSeleccionado.element} />
+        </label>
+
+        <label>
+          Word 1:
+          <input type="text" name="w1" defaultValue={registroSeleccionado.word1} />
+        </label>
+
+        <label>
+          Word 2:
+          <input type="text" name="w2" defaultValue={registroSeleccionado.word2} />
+        </label>
+
+        <label>
+          Word 3:
+          <input type="text" name="w3" defaultValue={registroSeleccionado.word3} />
+        </label>
+
+        
+        <button type="submit">Guardar Cambios</button>
+      </form>
+    }
+  />
+)}
+      {/* Modal Eliminar Classify */}
+      {ModalEliminarAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalEliminar}
+          contenido={
+            <div>
+              <h3>¿Eliminar este registro?</h3>
+              <p><b>{registroSeleccionado.element}</b></p>
+              <button onClick={cerrarModalEliminar}>Cancelar</button>
               <button
-                className="bg-gray-300 px-4 py-2 rounded"
-                onClick={() => setMostrarModal(false)}
+                onClick={() => {
+                  alert("Registro eliminado ✅");
+                  cerrarModalEliminar();
+                }}
               >
-                Cancelar
-              </button>
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handleGuardar}
-              >
-                Guardar
+                Eliminar
               </button>
             </div>
-          </div>
-        </div>
+          }
+        />
       )}
     </div>
   );

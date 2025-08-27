@@ -13,6 +13,10 @@ const VistaMatch = () => {
   const [ModalEliminarAbierto, setModalEliminarAbierto] = useState(false);
   const [ModalEditarAbierto, setModalEditarAbierto] = useState(false);
 
+  const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
+
+
+
   const abrirModal = (emoji, word, def) => {
     setItemSeleccionado({ emoji, word, def });
     setModalAbierto(true);
@@ -30,24 +34,33 @@ const VistaMatch = () => {
     setModalAgregarAbierto(false);
   };
 
-  const abrirModalView = () => {
+  const abrirModalView = (registro) => {
+    setRegistroSeleccionado(registro);
+
     setModalViewAbierto(true);
   };
 
   const cerrarModalView = () => {
+    setRegistroSeleccionado(null);
+
     setModalViewAbierto(false);
   };
-  const abrirModalEliminar = () => {
+  const abrirModalEliminar = (registro) => {
+
     setModalEliminarAbierto(true);
   };  
   const cerrarModalEliminar = () => {
+
     setModalEliminarAbierto(false);
   };
 
-  const abrirModalEditar = () => {
+  const abrirModalEditar = (registro) => {
+          setRegistroSeleccionado(registro);
+
     setModalEditarAbierto(true);
   };
   const cerrarModalEditar = () => {
+          setRegistroSeleccionado(null);
     setModalEditarAbierto(false);
   };
 
@@ -157,10 +170,11 @@ const VistaMatch = () => {
                   </td>
                 ))}
                 <td>
-                  <button title="Ver" onClick={abrirModalView}>
-                    <Eye size={16} />
-                  </button>
-                  <button title="Editar" onClick={abrirModalEditar}>
+                  <button title="Ver" onClick={() => abrirModalView(fila)}>
+  <Eye size={16} />
+</button>
+
+                  <button title="Editar" onClick={() => abrirModalEditar(fila)}>
                     <Edit size={16} />
                   </button>
                   <button title="Eliminar" onClick={abrirModalEliminar}>
@@ -191,25 +205,90 @@ const VistaMatch = () => {
         <Modal onClose={cerrarModalAgregar} contenido={<ModalAgregarMatch />} />
       )}
 
-      {/* Modal View Match */}
       {ModalViewAbierto && (
-        <Modal
-          onClose={cerrarModalView}
-          contenido={<div>Vista Detallada Registro</div>}
-        />
-      )}
-      {/* Modal Editar Match */}
-      {ModalEditarAbierto && (
-        <Modal
-          onClose={cerrarModalEditar}
-          contenido={<div>Editar Registro</div>}
-        />
-      )}
+  <Modal
+    onClose={cerrarModalView}
+    contenido={
+      registroSeleccionado && (
+        <div>
+          <h3>Vista Detallada Registro</h3>
+          <p><b>Emojis:</b> {registroSeleccionado.imgs.join(" ")}</p>
+          <p><b>Palabras:</b> {registroSeleccionado.words.join(", ")}</p>
+          <p><b>Definiciones:</b></p>
+          <ul>
+            {registroSeleccionado.defs.map((d, i) => (
+              <li key={i}>{d}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  />
+)}
+
+      {ModalEditarAbierto && registroSeleccionado && (
+  <Modal
+    onClose={cerrarModalEditar}
+    contenido={
+      <div>
+        <h3>Editar Registro</h3>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+
+            alert("Registro actualizado ✅");
+
+            cerrarModalEditar();
+          }}
+        >
+          <label>Emojis (separados por coma):</label>
+          <input
+            type="text"
+            defaultValue={registroSeleccionado.imgs.join(", ")}
+          />
+
+          <label>Palabras (separadas por coma):</label>
+          <input
+            type="text"
+            defaultValue={registroSeleccionado.words.join(", ")}
+          />
+
+          <label>Definiciones (separadas por coma):</label>
+          <textarea
+            defaultValue={registroSeleccionado.defs.join(", ")}
+          />
+
+          <button type="submit">Guardar Cambios</button>
+        </form>
+      </div>
+    }
+  />
+)}
+
       {/* Modal Eliminar Match */}
       {ModalEliminarAbierto && (
         <Modal
           onClose={cerrarModalEliminar}
-          contenido={<div>¿Estás seguro de eliminar este registro?</div>}
+          contenido={<div>
+        <h3>Eliminar Registro</h3>
+        
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+
+            alert("Registro eliminado ✅");
+
+            cerrarModalEliminar();
+          }}
+        >
+          
+
+          <button type="submit">Eliminar</button>
+        </form>
+      </div>
+
+          }
+          
         />
       )}
     </div>

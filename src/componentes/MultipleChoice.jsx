@@ -1,76 +1,73 @@
-import React, { useState } from 'react';
-import { Search, Plus, Eye, Edit, Trash2, X } from 'lucide-react';
+import React, { useState } from "react";
+import { Search, Plus, Eye, Edit, Trash2, X } from "lucide-react";
+import Modal from "./Modal/Modal";
+import ModalAgregarMultipleChoice from "./Modal/ModalAgregarMultipleChoice"
 
-const VistaMultiplChoice = ({
-  clientesFiltrados = [],
-  busqueda,
-  setBusqueda,
-  resultadosPorPagina,
-  setResultadosPorPagina,
-  alternarActivo
-}) => {
-  const [mostrarModal, setMostrarModal] = useState(false);
-  const [nuevaPregunta, setNuevaPregunta] = useState({
-    instruction: '',
-    text: '',
-    items: ['',],
-    level: '',
-    skill: '',
-    audio: ''
-  });
+const VistaMultiplChoice = () => {
+  const [ModalAgregarAbierto, setModalAgregarAbierto] = useState(false);
+  const [ModalViewAbierto, setModalViewAbierto] = useState(false);
+  const [ModalEliminarAbierto, setModalEliminarAbierto] = useState(false);
+  const [ModalEditarAbierto, setModalEditarAbierto] = useState(false);
+  const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
+  
+  const abrirModalAgregar = () => {
+    setModalAgregarAbierto(true);
+  };
+
+  const cerrarModalAgregar = () => {
+    setModalAgregarAbierto(false);
+  };
+
+  const abrirModalView = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalViewAbierto(true);
+  };
+
+  const cerrarModalView = () => {
+    setRegistroSeleccionado(null);
+    setModalViewAbierto(false);
+  };
+  const abrirModalEliminar = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalEliminarAbierto(true);
+  };  
+  const cerrarModalEliminar = () => {
+    setRegistroSeleccionado(null);
+    setModalEliminarAbierto(false);
+  };
+
+  const abrirModalEditar = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalEditarAbierto(true);
+  };
+  const cerrarModalEditar = () => {
+    setRegistroSeleccionado(null);
+    setModalEditarAbierto(false);
+  };
 
   // Datos de ejemplo si clientesFiltrados está vacío
-  const [datos, setDatos] = useState(
-    clientesFiltrados.length > 0
-      ? clientesFiltrados
-      : [
+  const datos = [
           {
             id: 1,
-            instruction: 'Selecciona la opción correcta',
-            text: 'What is the capital of France?',
-            items: ['Paris', 'London', 'Madrid', 'Berlin'],
-            level: 'A2',
-            skill: 'Reading',
-            audio: 'audio1.mp3'
+            instruction: "Selecciona la opción correcta",
+            text: "What is the capital of France?",
+            items: ["Paris", "London", "Madrid", "Berlin"],
+            level: "A2",
+            skill: "Reading",
+            audio: "audio1.mp3",
           },
           {
             id: 2,
-            instruction: 'Escoge la respuesta adecuada',
-            text: 'She _____ to the gym every day.',
-            items: ['go', 'goes', 'going', 'gone'],
-            level: 'B1',
-            skill: 'Grammar',
-            audio: 'audio2.mp3'
-          }
+            instruction: "Escoge la respuesta adecuada",
+            text: "She _____ to the gym every day.",
+            items: ["go", "goes", "going", "gone"],
+            level: "B1",
+            skill: "Grammar",
+            audio: "audio2.mp3",
+          },
         ]
-  );
 
-  // Manejar cambios en inputs
-  const handleChange = (e, index = null) => {
-    const { name, value } = e.target;
-    if (name === 'items' && index !== null) {
-      const nuevosItems = [...nuevaPregunta.items];
-      nuevosItems[index] = value;
-      setNuevaPregunta({ ...nuevaPregunta, items: nuevosItems });
-    } else {
-      setNuevaPregunta({ ...nuevaPregunta, [name]: value });
-    }
-  };
-
-  // Guardar nueva pregunta
-  const handleGuardar = () => {
-    const nueva = { ...nuevaPregunta, id: Date.now() };
-    setDatos([...datos, nueva]);
-    setNuevaPregunta({
-      instruction: '',
-      text: '',
-      items: ['', '', '', ''],
-      level: '',
-      skill: '',
-      audio: ''
-    });
-    setMostrarModal(false);
-  };
+  
 
   return (
     <div className="vista-cliente">
@@ -80,7 +77,7 @@ const VistaMultiplChoice = ({
           <button
             type="button"
             className="btn agregar"
-            onClick={() => setMostrarModal(true)}
+            onClick={abrirModalAgregar}
           >
             <Plus size={16} /> AGREGAR NUEVO
           </button>
@@ -92,8 +89,6 @@ const VistaMultiplChoice = ({
             <input
               type="text"
               placeholder="Buscar pregunta"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
         </div>
@@ -107,8 +102,6 @@ const VistaMultiplChoice = ({
               <th>Instruction</th>
               <th>Text</th>
               <th>Items</th>
-              <th>Level</th>
-              <th>Skill</th>
               <th>Audio</th>
               <th>Acciones</th>
             </tr>
@@ -121,14 +114,12 @@ const VistaMultiplChoice = ({
                 <td>
                   <ul>
                     {pregunta.items
-                      .filter((item) => item.trim() !== '') // 🔥 evita que salgan vacíos
+                      .filter((item) => item.trim() !== "") // 🔥 evita que salgan vacíos
                       .map((item, index) => (
                         <li key={index}>{item}</li>
                       ))}
                   </ul>
                 </td>
-                <td>{pregunta.level}</td>
-                <td>{pregunta.skill}</td>
                 <td>
                   <a
                     href={`/${pregunta.audio}`}
@@ -139,103 +130,149 @@ const VistaMultiplChoice = ({
                   </a>
                 </td>
                 <td>
-                  <button title="Ver"><Eye size={16} /></button>
-                  <button title="Editar"><Edit size={16} /></button>
-                  <button title="Eliminar"><Trash2 size={16} /></button>
+                  <button title="Ver" onClick={() => abrirModalView (pregunta)}>
+                    <Eye size={16} />
+                  </button>
+                  <button title="Editar" onClick={() => abrirModalEditar (pregunta)}>
+                    <Edit size={16} />
+                  </button>
+                  <button title="Eliminar" onClick={() => abrirModalEliminar (pregunta)}>
+                    <Trash2 size={16} />
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      
+      {/* Modal Agregar Match */}
+      {ModalAgregarAbierto && (
+        <Modal onClose={cerrarModalAgregar} contenido={<ModalAgregarMultipleChoice />} />
+      )}
 
-      {/* Modal */}
-      {mostrarModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600"
-              onClick={() => setMostrarModal(false)}
+      {/* Modal View Match */}
+      {ModalViewAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalView}
+          contenido={
+            <div>
+              <h3>Vista Detallada Registro</h3>
+              <p><b>instruction:</b> {registroSeleccionado.instruction}</p>
+              <p><b>Text:</b> {registroSeleccionado.text}</p>
+              <p><b>Item 1:</b> {registroSeleccionado.items[0]}</p>
+              <p><b>Item 2:</b> {registroSeleccionado.items[1]}</p>
+              <p><b>Item 3:</b> {registroSeleccionado.items[2]}</p>
+              <p><b>Item 4:</b> {registroSeleccionado.items[3]}</p>
+              <p><b>Audio:</b></p>
+              <audio controls src={registroSeleccionado.audio}></audio>      </div>
+          }
+        />
+      )}
+      {/* Modal Editar Match */}
+      {ModalEditarAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalEditar}
+          contenido={
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                alert("Registro actualizado ✅");
+      
+                  cerrarModalEditar();
+                const updated = {
+                  ...registroSeleccionado,
+                  instruction: e.target.instruction.value,
+                  text: e.target.text.value,
+                  writingFields: [
+                    e.target.i1.value,
+                    e.target.i2.value,
+                    e.target.i3.value,
+                    
+                  ],
+                  audio: e.target.audio.value,
+                };
+      
+                setDatosEjemplo((prev) =>
+                  prev.map((item) =>
+                    item.id === registroSeleccionado.id ? updated : item
+                  )
+                );
+      
+                cerrarModalEditar();
+              }}
             >
-              <X size={20} />
-            </button>
-
-            <h3 className="text-lg font-semibold mb-4">Agregar Pregunta</h3>
-
-            <input
-              type="text"
-              name="instruction"
-              placeholder="Instruction"
-              value={nuevaPregunta.instruction}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-
-            <input
-              type="text"
-              name="text"
-              placeholder="Text"
-              value={nuevaPregunta.text}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-
-            {nuevaPregunta.items.map((item, index) => (
-              <input
-                key={index}
-                type="text"
-                name="items"
-                placeholder={`Opción ${index + 1}`} // ✅ solo se muestra en el input
-                value={item}
-                onChange={(e) => handleChange(e, index)}
-                className="border p-2 w-full mb-2"
-              />
-            ))}
-
-            <input
-              type="text"
-              name="level"
-              placeholder="Level"
-              value={nuevaPregunta.level}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-
-            <input
-              type="text"
-              name="skill"
-              placeholder="Skill"
-              value={nuevaPregunta.skill}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-
-            <input
-              type="text"
-              name="audio"
-              placeholder="URL del audio"
-              value={nuevaPregunta.audio}
-              onChange={handleChange}
-              className="border p-2 w-full mb-4"
-            />
-
-            <div className="flex justify-end gap-2">
+              <h3>Editar Registro</h3>
+      
+              <label>
+                instruction:
+                <input type="text" name="instruction" defaultValue={registroSeleccionado.instruction} />
+              </label>
+      
+              <label>
+                Text:
+                <input type="text" name="text" defaultValue={registroSeleccionado.text} />
+              </label>
+      
+              
+      
+              <label>
+                Item 1:
+                <input type="text" name="w1" defaultValue={registroSeleccionado.items[0]} />
+              </label>
+      
+              <label>
+                Item 2:
+                <input type="text" name="w2" defaultValue={registroSeleccionado.items[1]} />
+              </label>
+      
+              <label>
+                Item 3:
+                <input type="text" name="w3" defaultValue={registroSeleccionado.items[2]} />
+              </label>
+      
+              
+              
+      
+              <label>
+                  {/* Audio */}
+          <label className="block mb-2 font-semibold">Audio</label>
+          <input
+            type="file"
+            name="audio"
+            accept="audio/*"
+            className="border p-2 w-full mb-4"
+          />
+              </label>
+      
+              <button type="submit">Guardar Cambios</button>
+            </form>
+          }
+        />
+      )}
+      {/* Modal Eliminar Match */}
+      {/* Modal Eliminar Match */}
+       {ModalEliminarAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalEliminar}
+          contenido={
+            <div>
+              <h3>¿Eliminar este registro?</h3>
+              <p><b>Text: </b>{registroSeleccionado.text}</p>
+              <button onClick={cerrarModalEliminar}>Cancelar</button>
               <button
-                className="bg-gray-300 px-4 py-2 rounded"
-                onClick={() => setMostrarModal(false)}
+                onClick={() => {
+                  alert("Registro eliminado ✅");
+                  cerrarModalEliminar();
+                }}
               >
-                Cancelar
-              </button>
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handleGuardar}
-              >
-                Guardar
+                Eliminar
               </button>
             </div>
-          </div>
-        </div>
+          }
+        />
       )}
+
     </div>
   );
 };

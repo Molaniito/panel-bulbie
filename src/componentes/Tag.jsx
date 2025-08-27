@@ -1,62 +1,87 @@
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, X } from 'lucide-react';
+import Modal from "./Modal/Modal";
+import ModalAgregarTag from "./Modal/ModalAgregarTag"
 
 const VistaTag = () => {
-  const [busqueda, setBusqueda] = useState('');
-  const [mostrarModal, setMostrarModal] = useState(false);
-  const [nuevoTag, setNuevoTag] = useState({
-    image: '',
-    writingFields: ['', '', '', '', ''],
-    audio: ''
-  });
+  const [busqueda, setBusqueda] = useState("");
+  const [ModalAgregarAbierto, setModalAgregarAbierto] = useState(false);
+  const [ModalViewAbierto, setModalViewAbierto] = useState(false);
+  const [ModalEliminarAbierto, setModalEliminarAbierto] = useState(false);
+  const [ModalEditarAbierto, setModalEditarAbierto] = useState(false);
+  const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
+  
+
+  const abrirModalAgregar = () => {
+    setModalAgregarAbierto(true);
+  };
+
+  const cerrarModalAgregar = () => {
+    setModalAgregarAbierto(false);
+  };
+
+  const abrirModalView = (registro) => {
+        setRegistroSeleccionado(registro);
+
+    setModalViewAbierto(true);
+  };
+
+  const cerrarModalView = () => {
+        setRegistroSeleccionado(null);
+
+    setModalViewAbierto(false);
+  };
+  const abrirModalEliminar = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalEliminarAbierto(true);
+  };  
+  const cerrarModalEliminar = () => {
+    setRegistroSeleccionado(null);
+    setModalEliminarAbierto(false);
+  };
+
+  const abrirModalEditar = (registro) => {
+            setRegistroSeleccionado(registro);
+
+    setModalEditarAbierto(true);
+  };
+  const cerrarModalEditar = () => {
+            setRegistroSeleccionado(null);
+
+    setModalEditarAbierto(false);
+  };
+
+  
 
   // Datos de prueba estáticos
   const [datosEjemplo, setDatosEjemplo] = useState([
     {
       id: 1,
-      image: '📷',
+      image: "📷",
       writingFields: [
-        'The cat is sleeping.',
-        'I like apples.',
-        'Where is my book?',
-        'She is running fast.',
-        'We are at school.'
+        "The cat is sleeping.",
+        "I like apples.",
+        "Where is my book?",
+        "She is running fast.",
+        "We are at school.",
       ],
-      audio: 'audio_cat_01.mp3'
+      audio: "audio_cat_01.mp3",
     },
     {
       id: 2,
-      image: '🎨',
+      image: "🎨",
       writingFields: [
-        'He is drawing a tree.',
-        'Open the window.',
-        'This is my pencil.',
-        'They are happy.',
-        'Look at the stars.'
+        "He is drawing a tree.",
+        "Open the window.",
+        "This is my pencil.",
+        "They are happy.",
+        "Look at the stars.",
       ],
-      audio: 'audio_art_02.mp3'
-    }
+      audio: "audio_art_02.mp3",
+    },
   ]);
 
-  // Manejar cambios en el modal
-  const handleChange = (e, index = null) => {
-    const { name, value } = e.target;
-    if (name === 'writingFields' && index !== null) {
-      const nuevasFields = [...nuevoTag.writingFields];
-      nuevasFields[index] = value;
-      setNuevoTag({ ...nuevoTag, writingFields: nuevasFields });
-    } else {
-      setNuevoTag({ ...nuevoTag, [name]: value });
-    }
-  };
-
-  // Guardar nuevo registro
-  const handleGuardar = () => {
-    const nuevo = { ...nuevoTag, id: Date.now() };
-    setDatosEjemplo([...datosEjemplo, nuevo]);
-    setNuevoTag({ image: '', writingFields: ['', '', '', '', ''], audio: '' });
-    setMostrarModal(false);
-  };
+  
 
   return (
     <div className="vista-cliente">
@@ -66,7 +91,7 @@ const VistaTag = () => {
           <button
             type="button"
             className="btn agregar"
-            onClick={() => setMostrarModal(true)}
+            onClick={abrirModalAgregar}
           >
             <Plus size={16} /> AGREGAR NUEVO
           </button>
@@ -115,9 +140,15 @@ const VistaTag = () => {
                   ))}
                   <td>{item.audio}</td>
                   <td>
-                    <button title="Ver"><Eye size={16} /></button>
-                    <button title="Editar"><Edit size={16} /></button>
-                    <button title="Eliminar"><Trash2 size={16} /></button>
+                    <button title="Ver" onClick={() => abrirModalView (item)}>
+                    <Eye size={16} />
+                  </button>
+                  <button title="Editar" onClick={() => abrirModalEditar (item)}>
+                    <Edit size={16} />
+                  </button>
+                  <button title="Eliminar" onClick={abrirModalEliminar}>
+                    <Trash2 size={16} />
+                  </button>
                   </td>
                 </tr>
               ))}
@@ -125,65 +156,131 @@ const VistaTag = () => {
         </table>
       </div>
 
-      {/* Modal */}
-      {mostrarModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600"
-              onClick={() => setMostrarModal(false)}
-            >
-              <X size={20} />
-            </button>
+      {/* Modal Agregar Match */}
+      {ModalAgregarAbierto && (
+        <Modal onClose={cerrarModalAgregar} contenido={<ModalAgregarTag />} />
+      )}
 
-            <h3 className="text-lg font-semibold mb-4">Agregar Tag</h3>
+      {/* Modal Ver */}
+      {ModalViewAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalView}
+          contenido={
+            <div>
+              <h3>Vista Detallada Registro</h3>
+              <p><b>Imagen:</b> {registroSeleccionado.image}</p>
+              <p><b>WritingField 1:</b> {registroSeleccionado.writingFields[0]}</p>
+              <p><b>WritingField 2:</b> {registroSeleccionado.writingFields[1]}</p>
+              <p><b>WritingField 3:</b> {registroSeleccionado.writingFields[2]}</p>
+              <p><b>WritingField 4:</b> {registroSeleccionado.writingFields[3]}</p>
+              <p><b>WritingField 5:</b> {registroSeleccionado.writingFields[4]}</p>
+              <p><b>Audio:</b></p>
+              <audio controls src={registroSeleccionado.audio}></audio>      </div>
+          }
+        />
+      )}
+      {/* Modal Editar Match */}
+      {ModalEditarAbierto && registroSeleccionado && (
+  <Modal
+    onClose={cerrarModalEditar}
+    contenido={
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          alert("Registro actualizado ✅");
 
-            <input
-              type="text"
-              name="image"
-              placeholder="Image"
-              value={nuevoTag.image}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
+            cerrarModalEditar();
+          const updated = {
+            ...registroSeleccionado,
+            image: e.target.image.value,
+            writingFields: [
+              e.target.w1.value,
+              e.target.w2.value,
+              e.target.w3.value,
+              e.target.w4.value,
+              e.target.w5.value,
+            ],
+            audio: e.target.audio.value,
+          };
 
-            {nuevoTag.writingFields.map((field, index) => (
-              <input
-                key={index}
-                type="text"
-                name="writingFields"
-                placeholder={`WritingField ${index + 1}`}
-                value={field}
-                onChange={(e) => handleChange(e, index)}
-                className="border p-2 w-full mb-2"
-              />
-            ))}
+          setDatosEjemplo((prev) =>
+            prev.map((item) =>
+              item.id === registroSeleccionado.id ? updated : item
+            )
+          );
 
-            <input
-              type="text"
-              name="audio"
-              placeholder="URL del audio"
-              value={nuevoTag.audio}
-              onChange={handleChange}
-              className="border p-2 w-full mb-4"
-            />
+          cerrarModalEditar();
+        }}
+      >
+        <h3>Editar Registro</h3>
 
-            <div className="flex justify-end gap-2">
+        <label>
+          Imagen:
+          <input type="text" name="image" defaultValue={registroSeleccionado.image} />
+        </label>
+
+        <label>
+          WritingField 1:
+          <input type="text" name="w1" defaultValue={registroSeleccionado.writingFields[0]} />
+        </label>
+
+        <label>
+          WritingField 2:
+          <input type="text" name="w2" defaultValue={registroSeleccionado.writingFields[1]} />
+        </label>
+
+        <label>
+          WritingField 3:
+          <input type="text" name="w3" defaultValue={registroSeleccionado.writingFields[2]} />
+        </label>
+
+        <label>
+          WritingField 4:
+          <input type="text" name="w4" defaultValue={registroSeleccionado.writingFields[3]} />
+        </label>
+
+        <label>
+          WritingField 5:
+          <input type="text" name="w5" defaultValue={registroSeleccionado.writingFields[4]} />
+        </label>
+
+        <label>
+                  {/* Audio */}
+          <label className="block mb-2 font-semibold">Audio</label>
+          <input
+            type="file"
+            name="audio"
+            accept="audio/*"
+            className="border p-2 w-full mb-4"
+          />
+              </label>
+
+        <button type="submit">Guardar Cambios</button>
+      </form>
+    }
+  />
+)}
+
+      {/* Modal Eliminar Match */}
+       {ModalEliminarAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalEliminar}
+          contenido={
+            <div>
+              <h3>¿Eliminar este registro?</h3>
+              <p><b>{registroSeleccionado.id}</b></p>
+              <button onClick={cerrarModalEliminar}>Cancelar</button>
               <button
-                className="bg-gray-300 px-4 py-2 rounded"
-                onClick={() => setMostrarModal(false)}
+                onClick={() => {
+                  alert("Registro eliminado ✅");
+                  cerrarModalEliminar();
+                }}
               >
-                Cancelar
-              </button>
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handleGuardar}
-              >
-                Guardar
+                Eliminar
               </button>
             </div>
-          </div>
-        </div>
+          }
+        />
       )}
     </div>
   );

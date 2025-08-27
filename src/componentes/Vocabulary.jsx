@@ -1,66 +1,83 @@
 import React, { useState } from 'react';
-import { Globe, Plus, Search, Eye, Edit, Trash2, X } from 'lucide-react';
+import { Globe, Plus, Search, Eye, Edit, Trash2 } from 'lucide-react';
+import Modal from "./Modal/Modal";
+import ModalAgregarVocabulary from "./Modal/ModalAgregarVocabulary";
 
 const VistaVocabulary = () => {
-  const [busqueda, setBusqueda] = useState('');
-  const [mostrarModal, setMostrarModal] = useState(false);
-  const [nuevaPregunta, setNuevaPregunta] = useState({
-    pregunta: '',
-    opcion1: '',
-    opcion2: '',
-    opcion3: '',
-    correcta: '',
-    audio: ''
-  });
+  const [busqueda, setBusqueda] = useState("");
+  const [ModalAgregarAbierto, setModalAgregarAbierto] = useState(false);
+  const [ModalViewAbierto, setModalViewAbierto] = useState(false);
+  const [ModalEliminarAbierto, setModalEliminarAbierto] = useState(false);
+  const [ModalEditarAbierto, setModalEditarAbierto] = useState(false);
+  const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
+
+  const abrirModalAgregar = () => setModalAgregarAbierto(true);
+  const cerrarModalAgregar = () => setModalAgregarAbierto(false);
+
+  const abrirModalView = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalViewAbierto(true);
+  };
+  const cerrarModalView = () => {
+    setRegistroSeleccionado(null);
+    setModalViewAbierto(false);
+  };
+
+  const abrirModalEliminar = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalEliminarAbierto(true);
+  };
+  const cerrarModalEliminar = () => {
+    setRegistroSeleccionado(null);
+    setModalEliminarAbierto(false);
+  };
+
+  const abrirModalEditar = (registro) => {
+    setRegistroSeleccionado(registro);
+    setModalEditarAbierto(true);
+  };
+  const cerrarModalEditar = () => {
+    setRegistroSeleccionado(null);
+    setModalEditarAbierto(false);
+  };
 
   const datosEjemplo = [
     {
       id: 1,
-      objectName: 'Apple',
-      ipa: '/ˈæp.əl/',
-      description: 'A round fruit with red or green skin.',
-      image: '🍎',
-      audio: 'apple_audio.mp3',
-      level: 'Beginner',
-      subLevel: '1A'
+      objectName: "Apple",
+      ipa: "/ˈæp.əl/",
+      description: "A round fruit with red or green skin.",
+      image: "🍎",
+      audio: "apple_audio.mp3",
+      level: "Beginner",
+      subLevel: "1A",
     },
     {
       id: 2,
-      objectName: 'Dog',
-      ipa: '/dɔːɡ/',
-      description: 'A domesticated animal that barks.',
-      image: '🐶',
-      audio: 'dog_audio.mp3',
-      level: 'Beginner',
-      subLevel: '1B'
+      objectName: "Dog",
+      ipa: "/dɔːɡ/",
+      description: "A domesticated animal that barks.",
+      image: "🐶",
+      audio: "dog_audio.mp3",
+      level: "Beginner",
+      subLevel: "1B",
     },
     {
       id: 3,
-      objectName: 'Book',
-      ipa: '/bʊk/',
-      description: 'A set of pages with written content.',
-      image: '📚',
-      audio: 'book_audio.mp3',
-      level: 'Intermediate',
-      subLevel: '2A'
-    }
+      objectName: "Book",
+      ipa: "/bʊk/",
+      description: "A set of pages with written content.",
+      image: "📚",
+      audio: "book_audio.mp3",
+      level: "Intermediate",
+      subLevel: "2A",
+    },
   ];
 
   // Filtrar por nombre
   const datosFiltrados = datosEjemplo.filter((item) =>
     item.objectName.toLowerCase().includes(busqueda.toLowerCase())
   );
-
-  // Manejar cambios en inputs del modal
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNuevaPregunta((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleGuardar = () => {
-    console.log('Nueva pregunta guardada:', nuevaPregunta);
-    setMostrarModal(false);
-  };
 
   return (
     <div className="vista-ciudad">
@@ -76,7 +93,7 @@ const VistaVocabulary = () => {
           <button
             type="button"
             className="btn agregar"
-            onClick={() => setMostrarModal(true)}
+            onClick={abrirModalAgregar}
           >
             <Plus size={16} /> AGREGAR NUEVO
           </button>
@@ -124,9 +141,15 @@ const VistaVocabulary = () => {
                 <td>{item.level}</td>
                 <td>{item.subLevel}</td>
                 <td>
-                  <button title="Ver"><Eye size={16} /></button>
-                  <button title="Editar"><Edit size={16} /></button>
-                  <button title="Eliminar"><Trash2 size={16} /></button>
+                  <button title="Ver" onClick={() => abrirModalView(item)}>
+                    <Eye size={16} />
+                  </button>
+                  <button title="Editar" onClick={() => abrirModalEditar(item)}>
+                    <Edit size={16} />
+                  </button>
+                  <button title="Eliminar" onClick={() => abrirModalEliminar(item)}>
+                    <Trash2 size={16} />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -134,92 +157,182 @@ const VistaVocabulary = () => {
         </table>
       </div>
 
-      {/* Modal */}
-      {mostrarModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600"
-              onClick={() => setMostrarModal(false)}
-            >
-              <X size={20} />
-            </button>
+      {/* Modal Agregar */}
+      {ModalAgregarAbierto && (
+        <Modal onClose={cerrarModalAgregar} contenido={<ModalAgregarVocabulary />} />
+      )}
 
-            <h3 className="text-lg font-semibold mb-4">Agregar Pregunta</h3>
+      {/* Modal Ver */}
+      {ModalViewAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalView}
+          contenido={
+            <div>
+              <h3>Vista Detallada Registro</h3>
+              <p><b>Nombre:</b> {registroSeleccionado.objectName}</p>
+              <p><b>IPA:</b> {registroSeleccionado.ipa}</p>
+              <p><b>Descripción:</b> {registroSeleccionado.description}</p>
+              <p><b>Imagen:</b> {registroSeleccionado.image}</p>
+              <p><b>Audio:</b></p>
+              <audio controls src={registroSeleccionado.audio}></audio>
+              <p><b>Nivel:</b> {registroSeleccionado.level}</p>
+              <p><b>Subnivel:</b> {registroSeleccionado.subLevel}</p>hh
+            </div>
+          }
+        />
+      )}
 
-            <input
-              type="text"
-              name="pregunta"
-              placeholder="ObjectName"
-              value={nuevaPregunta.pregunta}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="opcion1"
-              placeholder="IPA"
-              value={nuevaPregunta.opcion1}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="opcion2"
-              placeholder="Description"
-              value={nuevaPregunta.opcion2}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              name="opcion3"
-              placeholder="Image"
-              value={nuevaPregunta.opcion3}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-             <input
-              type="text"
-              name="audio"
-              placeholder="URL del audio Audio"
-              value={nuevaPregunta.audio}
-              onChange={handleChange}
-              className="border p-2 w-full mb-4"
-            />
+      {/* Modal Editar */}
+      {ModalEditarAbierto && registroSeleccionado && (
+  <Modal
+    onClose={cerrarModalEditar}
+    contenido={
+      <div className="p-4 w-96">
+        <h3 className="text-lg font-semibold mb-4">Editar Vocabulary</h3>
 
-             <input
-              type="text"
-              name="correcta"
-              placeholder="Level  "
-              value={nuevaPregunta.correcta}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-              <input
-              type="text"
-              name="correcta"
-              placeholder="SubLevel"  
-              value={nuevaPregunta.correcta}
-              onChange={handleChange}
-              className="border p-2 w-full mb-2"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                className="bg-gray-300 px-4 py-2 rounded"
-                onClick={() => setMostrarModal(false)}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const form = e.target;
+
+            
+            const actualizado = {
+              ...registroSeleccionado,
+              objectName: form.objectName.value,
+              ipa: form.ipa.value,
+              description: form.description.value,
+              image: form.image.value || registroSeleccionado.image,
+              audio: form.audio.value || registroSeleccionado.audio,
+              level: form.level.value,
+              subLevel: form.subLevel.value,
+            };
+
+            console.log("Registro actualizado:", actualizado);
+
+            alert("Registro actualizado ✅");
+
+            cerrarModalEditar();
+          }}
+        >
+          {/* ObjectName */}
+          <input
+            type="text"
+            name="objectName"
+            defaultValue={registroSeleccionado.objectName}
+            placeholder="ObjectName"
+            className="border p-2 w-full mb-2"
+          />
+
+          {/* IPA */}
+          <input
+            type="text"
+            name="ipa"
+            defaultValue={registroSeleccionado.ipa}
+            placeholder="IPA"
+            className="border p-2 w-full mb-2"
+          />
+
+          {/* Description */}
+          <textarea
+            name="description"
+            defaultValue={registroSeleccionado.description}
+            placeholder="Description"
+            className="border p-2 w-full mb-2 h-24 resize-none"
+          />
+
+          {/* Imagen */}
+          <label className="block mb-2 font-semibold">Imagen</label>
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            className="border p-2 w-full mb-2"
+          />
+
+          {/* Audio */}
+          <label className="block mb-2 font-semibold">Audio</label>
+          <input
+            type="file"
+            name="audio"
+            accept="audio/*"
+            className="border p-2 w-full mb-4"
+          />
+
+          {/* Level + SubLevel */}
+          <div className="flex gap-4 mb-2">
+            <div className="flex-1">
+              <label className="block mb-2 font-semibold">Level</label>
+              <select
+                name="level"
+                defaultValue={registroSeleccionado.level}
+                className="border p-2 w-full"
               >
-                Cancelar
-              </button>
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handleGuardar}
+                <option value="">Selecciona un nivel</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+
+            <div className="flex-1">
+              <label className="block mb-2 font-semibold">SubLevel</label>
+              <select
+                name="subLevel"
+                defaultValue={registroSeleccionado.subLevel}
+                className="border p-2 w-full"
               >
-                Guardar
-              </button>
+                <option value="">Selecciona un subnivel</option>
+                <option value="1A">1A</option>
+                <option value="1B">1B</option>
+                <option value="2A">2A</option>
+                <option value="2B">2B</option>
+              </select>
             </div>
           </div>
-        </div>
+
+          {/* Botones */}
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              className="bg-gray-300 px-4 py-2 rounded"
+              onClick={cerrarModalEditar}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  />
+)}
+
+
+      {/* Modal Eliminar */}
+      {ModalEliminarAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalEliminar}
+          contenido={
+            <div>
+              <h3>¿Eliminar este registro?</h3>
+              <p><b>{registroSeleccionado.objectName}</b></p>
+              <button onClick={cerrarModalEliminar}>Cancelar</button>
+              <button
+                onClick={() => {
+                  alert("Registro eliminado ✅");
+                  cerrarModalEliminar();
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          }
+        />
       )}
     </div>
   );
