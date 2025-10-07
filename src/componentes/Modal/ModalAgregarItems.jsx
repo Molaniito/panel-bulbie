@@ -38,13 +38,7 @@ function ModalAgregarItems() {
               className="border p-2 w-full mb-2"
             />
             {/* Audio - file */}
-            <label className="block mb-2 font-semibold">Audio</label>
-            <input
-              type="file"
-              name="audio"
-              accept="audio/*"
-              className="border p-2 w-full mb-4"
-            />
+            
 
             <div className="flex justify-end gap-2">
               <button

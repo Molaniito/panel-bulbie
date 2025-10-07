@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { Search, Plus, Eye, Edit, Trash2, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, Plus, Eye, Edit, Trash2 } from "lucide-react";
 import Modal from "./Modal/Modal";
-import ModalAgregarMultipleChoice from "./Modal/ModalAgregarMultipleChoice"
+import ModalAgregarMultipleChoice from "./Modal/ModalAgregarMultipleChoice";
+import axios from "axios";
 
 const VistaMultiplChoice = () => {
   const [ModalAgregarAbierto, setModalAgregarAbierto] = useState(false);
@@ -9,20 +10,33 @@ const VistaMultiplChoice = () => {
   const [ModalEliminarAbierto, setModalEliminarAbierto] = useState(false);
   const [ModalEditarAbierto, setModalEditarAbierto] = useState(false);
   const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
-  
-  const abrirModalAgregar = () => {
-    setModalAgregarAbierto(true);
-  };
 
-  const cerrarModalAgregar = () => {
-    setModalAgregarAbierto(false);
-  };
+  const [datos, setDatos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDatos = async () => {
+      try {
+        const response = await axios.get(
+          "https://boostrap-0eub.onrender.com/multiplechoice/all" // Cambia la URL por la correcta de tu API
+        );
+        setDatos(response.data);
+      } catch (error) {
+        console.error("❌ Error cargando datos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDatos();
+  }, []);
+
+  const abrirModalAgregar = () => setModalAgregarAbierto(true);
+  const cerrarModalAgregar = () => setModalAgregarAbierto(false);
 
   const abrirModalView = (registro) => {
     setRegistroSeleccionado(registro);
     setModalViewAbierto(true);
   };
-
   const cerrarModalView = () => {
     setRegistroSeleccionado(null);
     setModalViewAbierto(false);
@@ -30,12 +44,11 @@ const VistaMultiplChoice = () => {
   const abrirModalEliminar = (registro) => {
     setRegistroSeleccionado(registro);
     setModalEliminarAbierto(true);
-  };  
+  };
   const cerrarModalEliminar = () => {
     setRegistroSeleccionado(null);
     setModalEliminarAbierto(false);
   };
-
   const abrirModalEditar = (registro) => {
     setRegistroSeleccionado(registro);
     setModalEditarAbierto(true);
@@ -45,29 +58,12 @@ const VistaMultiplChoice = () => {
     setModalEditarAbierto(false);
   };
 
-  // Datos de ejemplo si clientesFiltrados está vacío
-  const datos = [
-          {
-            id: 1,
-            instruction: "Selecciona la opción correcta",
-            text: "What is the capital of France?",
-            items: ["Paris", "London", "Madrid", "Berlin"],
-            level: "A2",
-            skill: "Reading",
-            audio: "audio1.mp3",
-          },
-          {
-            id: 2,
-            instruction: "Escoge la respuesta adecuada",
-            text: "She _____ to the gym every day.",
-            items: ["go", "goes", "going", "gone"],
-            level: "B1",
-            skill: "Grammar",
-            audio: "audio2.mp3",
-          },
-        ]
-
-  
+  // Función para obtener URL de audio si viene como buffer (adaptar según backend)
+  const obtenerUrlAudio = (audioObj) => {
+    // Si backend envía la URL directamente en audioObj.url, devolver eso
+    // Si no, habría que procesar el buffer (no incluido aquí)
+    return audioObj?.url || "";
+  };
 
   return (
     <div className="vista-cliente">
@@ -86,90 +82,156 @@ const VistaMultiplChoice = () => {
         <div className="filtros">
           <div className="busqueda">
             <Search size={16} />
-            <input
-              type="text"
-              placeholder="Buscar pregunta"
-            />
+            <input type="text" placeholder="Buscar pregunta" />
           </div>
         </div>
       </div>
 
       {/* Tabla */}
       <div className="tabla-container">
-        <table className="tabla-clientes">
-          <thead>
-            <tr>
-              <th>Instruction</th>
-              <th>Text</th>
-              <th>Items</th>
-              <th>Audio</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {datos.map((pregunta) => (
-              <tr key={pregunta.id}>
-                <td>{pregunta.instruction}</td>
-                <td>{pregunta.text}</td>
-                <td>
-                  <ul>
-                    {pregunta.items
-                      .filter((item) => item.trim() !== "") // 🔥 evita que salgan vacíos
-                      .map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
-                  </ul>
-                </td>
-                <td>
-                  <a
-                    href={`/${pregunta.audio}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {pregunta.audio}
-                  </a>
-                </td>
-                <td>
-                  <button title="Ver" onClick={() => abrirModalView (pregunta)}>
-                    <Eye size={16} />
-                  </button>
-                  <button title="Editar" onClick={() => abrirModalEditar (pregunta)}>
-                    <Edit size={16} />
-                  </button>
-                  <button title="Eliminar" onClick={() => abrirModalEliminar (pregunta)}>
-                    <Trash2 size={16} />
-                  </button>
-                </td>
+        {loading ? (
+          <p>Cargando...</p>
+        ) : (
+          <table className="tabla-clientes">
+            <thead>
+              <tr>
+                <th>Text</th>
+                <th>Items</th>
+                <th>Level</th>
+                <th>Skill</th>
+                <th>Audio</th>
+                <th>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {datos.length === 0 ? (
+                <tr>
+                  <td colSpan="6">No hay datos</td>
+                </tr>
+              ) : (
+                datos.map((pregunta) => (
+                  <tr key={pregunta._id}>
+                    <td>{pregunta.Text || "—"}</td>
+                    <td>
+                      {pregunta.Items && pregunta.Items.length > 0 ? (
+                        <ul>
+                          {pregunta.Items.filter(
+                            (item) => item.trim() !== ""
+                          ).map((item, i) => (
+                            <li key={i}>{item}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>
+                      {pregunta.Level && pregunta.Level.length > 0
+                        ? pregunta.Level.join(", ")
+                        : "—"}
+                    </td>
+                    <td>
+                      {pregunta.Skill && pregunta.Skill.length > 0
+                        ? pregunta.Skill.join(", ")
+                        : "—"}
+                    </td>
+                    <td>
+                      {obtenerUrlAudio(pregunta.Audio) ? (
+                        <audio controls src={obtenerUrlAudio(pregunta.Audio)} />
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>
+                      <button
+                        title="Ver"
+                        onClick={() => abrirModalView(pregunta)}
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        title="Editar"
+                        onClick={() => abrirModalEditar(pregunta)}
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        title="Eliminar"
+                        onClick={() => abrirModalEliminar(pregunta)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
-      
-      {/* Modal Agregar Match */}
+
+      {/* Modal Agregar MultipleChoice */}
       {ModalAgregarAbierto && (
-        <Modal onClose={cerrarModalAgregar} contenido={<ModalAgregarMultipleChoice />} />
+        <Modal
+          onClose={cerrarModalAgregar}
+          contenido={<ModalAgregarMultipleChoice />}
+        />
       )}
 
-      {/* Modal View Match */}
+      {/* Modal View MultipleChoice */}
       {ModalViewAbierto && registroSeleccionado && (
         <Modal
           onClose={cerrarModalView}
           contenido={
             <div>
               <h3>Vista Detallada Registro</h3>
-              <p><b>instruction:</b> {registroSeleccionado.instruction}</p>
-              <p><b>Text:</b> {registroSeleccionado.text}</p>
-              <p><b>Item 1:</b> {registroSeleccionado.items[0]}</p>
-              <p><b>Item 2:</b> {registroSeleccionado.items[1]}</p>
-              <p><b>Item 3:</b> {registroSeleccionado.items[2]}</p>
-              <p><b>Item 4:</b> {registroSeleccionado.items[3]}</p>
-              <p><b>Audio:</b></p>
-              <audio controls src={registroSeleccionado.audio}></audio>      </div>
+              <p>
+                <b>Text:</b> {registroSeleccionado.Text || "—"}
+              </p>
+              <p>
+                <b>Items:</b>{" "}
+                {registroSeleccionado.Items &&
+                registroSeleccionado.Items.length > 0 ? (
+                  <ul>
+                    {registroSeleccionado.Items.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  "—"
+                )}
+              </p>
+              <p>
+                <b>Level:</b>{" "}
+                {registroSeleccionado.Level &&
+                registroSeleccionado.Level.length > 0
+                  ? registroSeleccionado.Level.join(", ")
+                  : "—"}
+              </p>
+              <p>
+                <b>Skill:</b>{" "}
+                {registroSeleccionado.Skill &&
+                registroSeleccionado.Skill.length > 0
+                  ? registroSeleccionado.Skill.join(", ")
+                  : "—"}
+              </p>
+              <p>
+                <b>Audio:</b>
+              </p>
+              {obtenerUrlAudio(registroSeleccionado.Audio) ? (
+                <audio
+                  controls
+                  src={obtenerUrlAudio(registroSeleccionado.Audio)}
+                />
+              ) : (
+                <p>—</p>
+              )}
+            </div>
           }
         />
       )}
-      {/* Modal Editar Match */}
+
+      {/* Modal Editar MultipleChoice */}
       {ModalEditarAbierto && registroSeleccionado && (
         <Modal
           onClose={cerrarModalEditar}
@@ -178,91 +240,56 @@ const VistaMultiplChoice = () => {
               onSubmit={(e) => {
                 e.preventDefault();
                 alert("Registro actualizado ✅");
-      
-                  cerrarModalEditar();
-                const updated = {
-                  ...registroSeleccionado,
-                  instruction: e.target.instruction.value,
-                  text: e.target.text.value,
-                  writingFields: [
-                    e.target.i1.value,
-                    e.target.i2.value,
-                    e.target.i3.value,
-                    
-                  ],
-                  audio: e.target.audio.value,
-                };
-      
-                setDatosEjemplo((prev) =>
-                  prev.map((item) =>
-                    item.id === registroSeleccionado.id ? updated : item
-                  )
-                );
-      
+                
                 cerrarModalEditar();
               }}
             >
               <h3>Editar Registro</h3>
-      
-              <label>
-                instruction:
-                <input type="text" name="instruction" defaultValue={registroSeleccionado.instruction} />
-              </label>
-      
+
               <label>
                 Text:
-                <input type="text" name="text" defaultValue={registroSeleccionado.text} />
+                <input
+                  type="text"
+                  name="text"
+                  defaultValue={registroSeleccionado.Text || ""}
+                />
               </label>
-      
-              
-      
+
+            
+
               <label>
-                Item 1:
-                <input type="text" name="w1" defaultValue={registroSeleccionado.items[0]} />
+                Audio (URL):
+                <input
+                  type="text"
+                  name="audio"
+                  defaultValue={
+                    obtenerUrlAudio(registroSeleccionado.Audio) || ""
+                  }
+                />
               </label>
-      
-              <label>
-                Item 2:
-                <input type="text" name="w2" defaultValue={registroSeleccionado.items[1]} />
-              </label>
-      
-              <label>
-                Item 3:
-                <input type="text" name="w3" defaultValue={registroSeleccionado.items[2]} />
-              </label>
-      
-              
-              
-      
-              <label>
-                  {/* Audio */}
-          <label className="block mb-2 font-semibold">Audio</label>
-          <input
-            type="file"
-            name="audio"
-            accept="audio/*"
-            className="border p-2 w-full mb-4"
-          />
-              </label>
-      
+
               <button type="submit">Guardar Cambios</button>
             </form>
           }
         />
       )}
-      {/* Modal Eliminar Match */}
-      {/* Modal Eliminar Match */}
-       {ModalEliminarAbierto && registroSeleccionado && (
+
+      {/* Modal Eliminar MultipleChoice */}
+      {ModalEliminarAbierto && registroSeleccionado && (
         <Modal
           onClose={cerrarModalEliminar}
           contenido={
             <div>
               <h3>¿Eliminar este registro?</h3>
-              <p><b>Text: </b>{registroSeleccionado.text}</p>
+              <p>
+                <b>Text: </b>
+                {registroSeleccionado.Text || "—"}
+              </p>
               <button onClick={cerrarModalEliminar}>Cancelar</button>
               <button
                 onClick={() => {
                   alert("Registro eliminado ✅");
+                  // Aquí debería ir la petición DELETE al backend para eliminar
                   cerrarModalEliminar();
                 }}
               >
@@ -272,7 +299,6 @@ const VistaMultiplChoice = () => {
           }
         />
       )}
-
     </div>
   );
 };

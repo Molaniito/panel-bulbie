@@ -1,21 +1,68 @@
-import React, { useState } from 'react';
-import { Search, Plus, Eye, Edit, Trash2, MapPin } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Search, Plus, Eye, Edit, Trash2, MapPin } from "lucide-react";
 import Modal from "./Modal/Modal";
-import ModalMatchImage from './Modal/ModalMatchImage';
-import ModalAgregarMatch from './Modal/ModalAgregarMatch';
+import ModalMatchImage from "./Modal/ModalMatchImage";
+import ModalAgregarMatch from "./Modal/ModalAgregarMatch";
+import axios from "axios";
 
 const VistaMatch = () => {
-  const [busqueda, setBusqueda] = useState('');
+  const [busqueda, setBusqueda] = useState("");
   const [modalAbierto, setModalAbierto] = useState(false);
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const [ModalAgregarAbierto, setModalAgregarAbierto] = useState(false);
   const [ModalViewAbierto, setModalViewAbierto] = useState(false);
   const [ModalEliminarAbierto, setModalEliminarAbierto] = useState(false);
   const [ModalEditarAbierto, setModalEditarAbierto] = useState(false);
-
   const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
 
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await axios.get(
+          "https://boostrap-0eub.onrender.com/match/all"
+        );
+
+        // transformar backend -> formato frontend
+        const datosTransformados = response.data.map((doc) => {
+          const imgs = [];
+          const words = [];
+          const defs = [];
+          for (let i = 1; i <= 10; i++) {
+            if (doc[`img${i}`]) imgs.push(bufferToUrl(doc[`img${i}`]));
+            if (doc[`word${i}`]) words.push(doc[`word${i}`]);
+            if (doc[`def${i}`]) defs.push(doc[`def${i}`]);
+          }
+          return {
+            id: doc._id,
+            imgs,
+            words,
+            defs,
+          };
+        });
+
+        setItems(datosTransformados);
+      } catch (error) {
+        console.error("❌ Error al cargar los items:", error);
+      } finally {
+        setLoading(false);  
+      }
+    };
+
+    // helper para convertir Buffer a string/URL
+    const bufferToUrl = (bufferObj) => {
+      try {
+        const uint8Array = new Uint8Array(bufferObj.data);
+        return new TextDecoder().decode(uint8Array);
+      } catch {
+        return "";
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   const abrirModal = (emoji, word, def) => {
     setItemSeleccionado({ emoji, word, def });
@@ -26,91 +73,54 @@ const VistaMatch = () => {
     setItemSeleccionado(null);
   };
 
-  const abrirModalAgregar = () => {
-    setModalAgregarAbierto(true);
-  };
-
-  const cerrarModalAgregar = () => {
-    setModalAgregarAbierto(false);
-  };
+  const abrirModalAgregar = () => setModalAgregarAbierto(true);
+  const cerrarModalAgregar = () => setModalAgregarAbierto(false);
 
   const abrirModalView = (registro) => {
     setRegistroSeleccionado(registro);
-
     setModalViewAbierto(true);
   };
-
   const cerrarModalView = () => {
     setRegistroSeleccionado(null);
-
     setModalViewAbierto(false);
   };
+
   const abrirModalEliminar = (registro) => {
-
+    setRegistroSeleccionado(registro);
     setModalEliminarAbierto(true);
-  };  
+  };
   const cerrarModalEliminar = () => {
-
+    setRegistroSeleccionado(null);
     setModalEliminarAbierto(false);
   };
 
   const abrirModalEditar = (registro) => {
-          setRegistroSeleccionado(registro);
-
+    setRegistroSeleccionado(registro);
     setModalEditarAbierto(true);
   };
   const cerrarModalEditar = () => {
-          setRegistroSeleccionado(null);
+    setRegistroSeleccionado(null);
     setModalEditarAbierto(false);
   };
 
-
-  
-  
-  const datosEjemplo = [
-    {
-      id: 1,
-      imgs: ['🌳', '🚗', '🐶', '🍎', '📚'],
-      words: ['Tree', 'Car', 'Dog', 'Apple', 'Book'],
-      defs: [
-        'A plant with leaves and branches',
-        'A vehicle for transportation',
-        'A domestic animal that barks',
-        'A red or green fruit',
-        'Something you read'
-      ]
-    },
-    {
-      id: 2,
-      imgs: ['🏠', '✈️', '🐱', '🍕', '🎵'],
-      words: ['House', 'Airplane', 'Cat', 'Pizza', 'Music'],
-      defs: [
-        'A place where people live',
-        'A flying vehicle for travel',
-        'A domestic animal that meows',
-        'An Italian dish with cheese and toppings',
-        'Art made of sound and rhythm'
-      ]
-    }
-  ];
-
   // Filtrar datos según la búsqueda
-  const datosFiltrados = datosEjemplo.map(fila => ({
-    ...fila,
-    imgs: fila.imgs.filter((_, i) =>
-      fila.words[i].toLowerCase().includes(busqueda.toLowerCase())
-    ),
-    words: fila.words.filter(word =>
-      word.toLowerCase().includes(busqueda.toLowerCase())
-    ),
-    defs: fila.defs.filter((_, i) =>
-      fila.words[i].toLowerCase().includes(busqueda.toLowerCase())
-    )
-  }));
+  const datosFiltrados = items
+    .map((fila) => ({
+      ...fila,
+      imgs: fila.imgs,
+      words: fila.words,
+      defs: fila.defs,
+    }))
+    .filter((fila) =>
+      fila.words.some((word) =>
+        word.toLowerCase().includes(busqueda.toLowerCase())
+      )
+    );
+
+  if (loading) return <p>Cargando...</p>;
 
   return (
     <div className="vista-direccion">
-      {/* Encabezado */}
       <div className="encabezado-direccion">
         <MapPin size={24} className="icono-direccion" />
         <h2 className="titulo-direccion">Gestión de Matching</h2>
@@ -127,8 +137,6 @@ const VistaMatch = () => {
             <Plus size={16} /> AGREGAR NUEVO
           </button>
         </div>
-
-        {/* Búsqueda */}
         <div className="filtros">
           <div className="busqueda">
             <Search size={16} />
@@ -158,26 +166,38 @@ const VistaMatch = () => {
           <tbody>
             {datosFiltrados.map((fila) => (
               <tr key={fila.id}>
-                {fila.imgs.map((img, index) => (
+                {[0, 1, 2, 3, 4].map((index) => (
                   <td key={`img-${index}`}>
-                    <button
-                      onClick={() =>
-                        abrirModal(img, fila.words[index], fila.defs[index])
-                      }
-                    >
-                      {img}
-                    </button>
+                    {fila.imgs[index] ? (
+                      <button
+                        onClick={() =>
+                          abrirModal(
+                            fila.imgs[index],
+                            fila.words[index],
+                            fila.defs[index]
+                          )
+                        }
+                      >
+                        <img
+                          src={fila.imgs[index]}
+                          alt={`Imagen ${index + 1}`}
+                          style={{ maxWidth: "100px", height: "auto" }}
+                        />
+                      </button>
+                    ) : null}
                   </td>
                 ))}
                 <td>
                   <button title="Ver" onClick={() => abrirModalView(fila)}>
-  <Eye size={16} />
-</button>
-
+                    <Eye size={16} />
+                  </button>
                   <button title="Editar" onClick={() => abrirModalEditar(fila)}>
                     <Edit size={16} />
                   </button>
-                  <button title="Eliminar" onClick={abrirModalEliminar}>
+                  <button
+                    title="Eliminar"
+                    onClick={() => abrirModalEliminar(fila)}
+                  >
                     <Trash2 size={16} />
                   </button>
                 </td>
@@ -200,99 +220,93 @@ const VistaMatch = () => {
           }
         />
       )}
+
       {/* Modal Agregar Match */}
       {ModalAgregarAbierto && (
         <Modal onClose={cerrarModalAgregar} contenido={<ModalAgregarMatch />} />
       )}
 
-      {ModalViewAbierto && (
-  <Modal
-    onClose={cerrarModalView}
-    contenido={
-      registroSeleccionado && (
-        <div>
-          <h3>Vista Detallada Registro</h3>
-          <p><b>Emojis:</b> {registroSeleccionado.imgs.join(" ")}</p>
-          <p><b>Palabras:</b> {registroSeleccionado.words.join(", ")}</p>
-          <p><b>Definiciones:</b></p>
-          <ul>
-            {registroSeleccionado.defs.map((d, i) => (
-              <li key={i}>{d}</li>
-            ))}
-          </ul>
-        </div>
-      )
-    }
-  />
-)}
+      {/* Modal Vista Detallada */}
+      {ModalViewAbierto && registroSeleccionado && (
+        <Modal
+          onClose={cerrarModalView}
+          contenido={
+            <div>
+              <h3>Vista Detallada Registro</h3>
+              <p>
+                <b>Emojis:</b> {registroSeleccionado.imgs.join(" ")}
+              </p>
+              <p>
+                <b>Palabras:</b> {registroSeleccionado.words.join(", ")}
+              </p>
+              <p>
+                <b>Definiciones:</b>
+              </p>
+              <ul>
+                {registroSeleccionado.defs.map((d, i) => (
+                  <li key={i}>{d}</li>
+                ))}
+              </ul>
+            </div>
+          }
+        />
+      )}
 
+      {/* Modal Editar */}
       {ModalEditarAbierto && registroSeleccionado && (
-  <Modal
-    onClose={cerrarModalEditar}
-    contenido={
-      <div>
-        <h3>Editar Registro</h3>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
+        <Modal
+          onClose={cerrarModalEditar}
+          contenido={
+            <div>
+              <h3>Editar Registro</h3>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  alert("Registro actualizado ✅");
+                  cerrarModalEditar();
+                }}
+              >
+                <label>Emojis (separados por coma):</label>
+                <input
+                  type="text"
+                  defaultValue={registroSeleccionado.imgs.join(", ")}
+                />
+                <label>Palabras (separadas por coma):</label>
+                <input
+                  type="text"
+                  defaultValue={registroSeleccionado.words.join(", ")}
+                />
+                <label>Definiciones (separadas por coma):</label>
+                <textarea defaultValue={registroSeleccionado.defs.join(", ")} />
+                <button type="submit">Guardar Cambios</button>
+              </form>
+            </div>
+          }
+        />
+      )}
 
-            alert("Registro actualizado ✅");
-
-            cerrarModalEditar();
-          }}
-        >
-          <label>Emojis (separados por coma):</label>
-          <input
-            type="text"
-            defaultValue={registroSeleccionado.imgs.join(", ")}
-          />
-
-          <label>Palabras (separadas por coma):</label>
-          <input
-            type="text"
-            defaultValue={registroSeleccionado.words.join(", ")}
-          />
-
-          <label>Definiciones (separadas por coma):</label>
-          <textarea
-            defaultValue={registroSeleccionado.defs.join(", ")}
-          />
-
-          <button type="submit">Guardar Cambios</button>
-        </form>
-      </div>
-    }
-  />
-)}
-
-      {/* Modal Eliminar Match */}
+      {/* Modal Eliminar */}
       {ModalEliminarAbierto && (
         <Modal
           onClose={cerrarModalEliminar}
-          contenido={<div>
-        <h3>Eliminar Registro</h3>
-        
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-
-            alert("Registro eliminado ✅");
-
-            cerrarModalEliminar();
-          }}
-        >
-          
-
-          <button type="submit">Eliminar</button>
-        </form>
-      </div>
-
+          contenido={
+            <div>
+              <h3>Eliminar Registro</h3>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  alert("Registro eliminado ✅");
+                  cerrarModalEliminar();
+                }}
+              >
+                <button type="submit">Eliminar</button>
+              </form>
+            </div>
           }
-          
         />
       )}
     </div>
   );
 };
 
-export default VistaMatch;
+export default VistaMatch;  
